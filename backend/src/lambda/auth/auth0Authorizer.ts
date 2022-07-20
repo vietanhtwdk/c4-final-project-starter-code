@@ -12,7 +12,7 @@ const logger = createLogger('auth')
 // TODO: Provide a URL that can be used to download a certificate that can be used
 // to verify JWT token signature.
 // To get this URL you need to go to an Auth0 page -> Show Advanced Settings -> Endpoints -> JSON Web Key Set
-const jwksUrl = '...'
+const jwksUrl = 'https://dev-4a8hkysf.us.auth0.com/.well-known/jwks.json'
 
 export const handler = async (
   event: CustomAuthorizerEvent
@@ -61,7 +61,12 @@ async function verifyToken(authHeader: string): Promise<JwtPayload> {
   // TODO: Implement token verification
   // You should implement it similarly to how it was implemented for the exercise for the lesson 5
   // You can read more about how to do this here: https://auth0.com/blog/navigating-rs256-and-jwks/
-  return undefined
+
+  return verify(
+    token,
+    (await getSigningKey(jwksUrl, jwt.header.kid)).publicKey,
+    { algorithms: ['RS256'] }
+  ) as JwtPayload
 }
 
 function getToken(authHeader: string): string {
@@ -74,4 +79,59 @@ function getToken(authHeader: string): string {
   const token = split[1]
 
   return token
+}
+
+function certToPEM(cert) {
+  cert = cert.match(/.{1,64}/g).join('\n')
+  cert = `-----BEGIN CERTIFICATE-----\n${cert}\n-----END CERTIFICATE-----\n`
+  return cert
+}
+
+const getSigningKey = async (jwksUrlm, kid) => {
+  const res = await Axios.get(jwksUrlm, {
+    headers: {
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Credentials': "'true'"
+    }
+  })
+
+  const keys = res.data.keys
+
+  if (!keys || !keys.length) {
+    const errorStr = 'The JWKS endpoint did not contain any keys'
+    logger.error(errorStr)
+    throw new Error(errorStr)
+  }
+
+  const signingKeys = keys
+    .filter(
+      (key) =>
+        key.use === 'sig' && // JWK property `use` determines the JWK is for signing
+        key.kty === 'RSA' && // We are only supporting RSA
+        key.kid && // The `kid` must be present to be useful for later
+        key.x5c &&
+        key.x5c.length // Has useful public keys (we aren't using n or e)
+    )
+    .map((key) => {
+      return { kid: key.kid, nbf: key.nbf, publicKey: certToPEM(key.x5c[0]) }
+    })
+
+  // If at least a single signing key doesn't exist we have a problem... Kaboom.
+  if (!signingKeys.length) {
+    const errorStr = 'The JWKS endpoint did not contain any signing keys'
+    logger.error(errorStr)
+    throw new Error(errorStr)
+  }
+
+  const signingKey = signingKeys.find((key) => key.kid === kid)
+
+  if (!signingKey) {
+    const errorStr = `Unable to find a signing key that matches '${kid}'`
+    logger.error(errorStr)
+    throw new Error(errorStr)
+  }
+
+  logger.info(`Able to find a signing key that matches '${kid}'`, signingKey)
+  return signingKey
 }
