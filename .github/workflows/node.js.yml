@@ -49,10 +49,10 @@ jobs:
       # - run: serverless deploy --verbose
 
       - name: serverless deploy
-        working-directory: ./backend
         uses: serverless/github-action@v3.1
         with:
-          args: deploy --verbose
+          args: -c "cd ./backend && deploy --verbose"
+          entrypoint: /bin/sh
         env:
           SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }}
           # or if using AWS credentials directly
