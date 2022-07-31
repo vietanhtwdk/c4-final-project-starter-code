@@ -1,4 +1,4 @@
-# org: vietanht
+org: vietanht
 app: vietanht
 service: serverless-todo-app
 
