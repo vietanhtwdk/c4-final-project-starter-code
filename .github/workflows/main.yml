@@ -34,6 +34,3 @@ jobs:
         run: |
           echo Add other actions to build,
           echo test, and deploy your project.
-      - run: echo  ${{ secrets.SERVERLESS_ACCESS_KEY }}
-      - run: echo  ${{ secrets.AWS_ID }}
-      - run: echo  ${{ secrets.AWS_KEY }}

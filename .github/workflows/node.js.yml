@@ -28,10 +28,6 @@ jobs:
 
       - run: cd backend
 
-      - run: echo  ${{ secrets.SERVERLESS_ACCESS_KEY }}
-      - run: echo  ${{ secrets.AWS_ID }}
-      - run: echo  ${{ secrets.AWS_KEY }}
-
       - run: npm install -g serverless@2.21.1
       - run: serverless --version
 
