@@ -34,9 +34,9 @@ jobs:
       - run: npm install -g serverless@2.21.1
       - run: serverless --version
 
-      - run: npm ci
+      # - run: npm ci
 
-      - run: npm i ts-node
+      # - run: npm i ts-node
       - run: npm update --save
       - run: npm audit fix
 
