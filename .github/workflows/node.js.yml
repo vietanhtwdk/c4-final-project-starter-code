@@ -31,14 +31,15 @@ jobs:
 
       - run: pwd
 
-      - run: export SERVERLESS_ACCESS_KEY=${{ secrets.SERVERLESS_ACCESS_KEY }}
       - run: npm install -g serverless@2.21.1
       - run: serverless --version
 
       - run: npm ci
 
-      - run: sls config credentials --provider aws --key ${{ secrets.AWS_ID }} --secret ${{ secrets.AWS_KEY }} --profile serverless
-
+      - run: npm i ts-node
       - run: npm update --save
       - run: npm audit fix
+
+      - run: sls config credentials --provider aws --key ${{ secrets.AWS_ID }} --secret ${{ secrets.AWS_KEY }} --profile serverless
+
       - run: serverless deploy --verbose
