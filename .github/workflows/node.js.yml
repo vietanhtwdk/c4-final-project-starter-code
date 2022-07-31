@@ -31,6 +31,7 @@ jobs:
 
       - run: pwd
 
+      - run: export SERVERLESS_ACCESS_KEY = ${{ secrets.SERVERLESS_ACCESS_KEY }}
       - run: npm install -g serverless@2.21.1
       - run: serverless --version
 
